@@ -59,47 +59,38 @@ namespace GamepadEmulator.Views
 
         private void HomeTab_Click(object sender, RoutedEventArgs e)
         {
-            // Switch to home view
+            HomeContent.Visibility = Visibility.Visible;
+            ConfigContent.Visibility = Visibility.Collapsed;
+            LogContent.Visibility = Visibility.Collapsed;
         }
 
         private void ConfigTab_Click(object sender, RoutedEventArgs e)
         {
-            // Switch to config view
+            HomeContent.Visibility = Visibility.Collapsed;
+            ConfigContent.Visibility = Visibility.Visible;
+            LogContent.Visibility = Visibility.Collapsed;
+        }
+
+        private void LogTab_Click(object sender, RoutedEventArgs e)
+        {
+            HomeContent.Visibility = Visibility.Collapsed;
+            ConfigContent.Visibility = Visibility.Collapsed;
+            LogContent.Visibility = Visibility.Visible;
         }
 
         private void CrosshairTab_Click(object sender, RoutedEventArgs e)
         {
-            // Switch to crosshair view
+            // Not implemented
         }
 
         private void ScriptsTab_Click(object sender, RoutedEventArgs e)
         {
-            // Switch to scripts view
+            // Not implemented
         }
 
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-        }
-    }
-
-    public class ValueToAngleConverter : IValueConverter
-    {
-        public static ValueToAngleConverter Instance { get; } = new ValueToAngleConverter();
-
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            if (value is double doubleValue)
-            {
-                // Convert slider value (0-100) to angle (-135 to +135 degrees)
-                return (doubleValue / 100.0) * 270 - 135;
-            }
-            return 0;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            throw new NotImplementedException();
         }
     }
 }
