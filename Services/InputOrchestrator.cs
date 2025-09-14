@@ -37,7 +37,7 @@ namespace GamepadEmulator.Services
             {
                 17, 30, 31, 32, // WASD
                 57, 29, 19, 2,   // Space, LCtrl, R, 1
-                62, 25           // F4, P
+                82, 25           // INSERT, P
             };
 
             _inactivityTimer = new Timer(CheckMouseInactivity, null, Timeout.Infinite, Timeout.Infinite);
@@ -182,8 +182,8 @@ namespace GamepadEmulator.Services
 
         private void OnKeyStrokeReceived(InterceptionService.InterceptionStroke stroke)
         {
-            // Handle pause/resume key (F4 key = 62)
-            if (stroke.code == 62 && stroke.state == 0)
+            // Handle pause/resume key (INSERT key = 82)
+            if (stroke.code == 82 && stroke.state == 0)
             {
                 SetPaused(!IsPaused);
                 return;
@@ -218,7 +218,10 @@ namespace GamepadEmulator.Services
         {
             if (!_disposed)
             {
-                Stop().Wait(); // Block and wait for stop to complete
+                // Fire-and-forget to avoid blocking the UI thread on exit.
+                // This is a compromise as Stop() is async.
+                _ = Task.Run(Stop);
+
                 _inactivityTimer?.Dispose();
                 _interceptionService?.Dispose();
                 _gamepadService?.Dispose();
