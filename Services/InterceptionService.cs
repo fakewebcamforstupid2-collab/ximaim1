@@ -72,14 +72,17 @@ namespace GamepadEmulator.Services
         {
             try
             {
-                LogMessage?.Invoke("Checking if Interceptor is loaded...");
+                LogMessage?.Invoke("Attempting to create interception context...");
                 _context = interception_create_context();
+                LogMessage?.Invoke($"interception_create_context returned: {_context}");
+
                 if (_context == IntPtr.Zero)
                 {
-                    LogMessage?.Invoke("Failed to create interception context.");
+                    LogMessage?.Invoke("Failed to create interception context. This usually means the Interception driver is not installed or not running correctly.");
                     return false;
                 }
 
+                LogMessage?.Invoke("Detecting mouse devices...");
                 bool mouseDetected = false;
                 for (int i = 11; i <= 20; i++)
                 {

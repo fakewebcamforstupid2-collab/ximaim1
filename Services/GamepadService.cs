@@ -19,9 +19,13 @@ namespace GamepadEmulator.Services
         {
             try
             {
-                LogMessage?.Invoke("Creating ViGEm client...");
+                LogMessage?.Invoke("Attempting to create ViGEm client...");
                 _client = new ViGEmClient();
+                LogMessage?.Invoke("ViGEm client created successfully.");
+
+                LogMessage?.Invoke("Attempting to create Xbox 360 controller...");
                 _gamepad = _client.CreateXbox360Controller();
+                LogMessage?.Invoke("Xbox 360 controller created successfully.");
                 _gamepad.Connect();
                 IsConnected = true;
                 LogMessage?.Invoke("ViGEm client created and connected.");
