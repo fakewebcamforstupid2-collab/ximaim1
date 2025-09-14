@@ -23,4 +23,10 @@
     <Resource Include="Assets\Images\interface_reference.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Page Update="Views\GamepadControllerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
 </Project>
