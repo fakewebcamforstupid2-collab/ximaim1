@@ -105,8 +105,8 @@ namespace GamepadEmulator.ViewModels
 
             // Wire up events
             _inputOrchestrator.LogMessage += OnLogMessage;
-            _inputOrchestrator.RunningStateChanged += state => Application.Current.Dispatcher.Invoke(() => IsRunning = state);
-            _inputOrchestrator.PausedStateChanged += state => Application.Current.Dispatcher.Invoke(() => IsPaused = state);
+            _inputOrchestrator.RunningStateChanged += state => Application.Current.Dispatcher.InvokeAsync(() => IsRunning = state);
+            _inputOrchestrator.PausedStateChanged += state => Application.Current.Dispatcher.InvokeAsync(() => IsPaused = state);
 
             // Initialize
             InitializeAsync();
@@ -163,7 +163,7 @@ namespace GamepadEmulator.ViewModels
 
         private void OnLogMessage(string message)
         {
-            Application.Current.Dispatcher.Invoke(() => AddLogMessage(message));
+            Application.Current.Dispatcher.InvokeAsync(() => AddLogMessage(message));
         }
 
         private void AddLogMessage(string message)

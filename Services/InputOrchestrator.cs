@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Nefarius.ViGEm.Client.Targets.Xbox360;
@@ -11,6 +12,7 @@ namespace GamepadEmulator.Services
         private readonly GamepadService _gamepadService;
         private readonly MappingService _mappingService;
         private readonly Timer _inactivityTimer;
+        private readonly HashSet<int> _blockedKeyCodes;
 
         private CancellationTokenSource? _cancellationTokenSource;
         private Task? _keyboardTask;
@@ -30,6 +32,13 @@ namespace GamepadEmulator.Services
             _interceptionService = new InterceptionService();
             _gamepadService = new GamepadService();
             _mappingService = new MappingService();
+
+            _blockedKeyCodes = new HashSet<int>
+            {
+                17, 30, 31, 32, // WASD
+                57, 29, 19, 2,   // Space, LCtrl, R, 1
+                62, 25           // F4, P
+            };
 
             _inactivityTimer = new Timer(CheckMouseInactivity, null, Timeout.Infinite, Timeout.Infinite);
 
@@ -160,19 +169,8 @@ namespace GamepadEmulator.Services
         private bool ShouldBlockKey(InterceptionService.InterceptionStroke stroke)
         {
             // Only block keys that are mapped to gamepad functions
-            // Let F4 (pause/unpause), P (panic), and mapped movement keys through the filter
             // Block means "consume for gamepad use", unblock means "pass through to Windows"
-            
-            var keyCode = stroke.code;
-            
-            // Mapped gamepad keys that should be blocked (consumed):
-            // W=17, A=30, S=31, D=32 (movement)
-            // Space=57, LCtrl=29, R=19, 1=2 (buttons)
-            // F4=62 (pause/resume), P=25 (panic) - these should also be blocked so they work
-            
-            return keyCode == 17 || keyCode == 30 || keyCode == 31 || keyCode == 32 || // WASD
-                   keyCode == 57 || keyCode == 29 || keyCode == 19 || keyCode == 2 ||   // Space, LCtrl, R, 1
-                   keyCode == 62 || keyCode == 25;  // F4, P
+            return _blockedKeyCodes.Contains(stroke.code);
         }
 
         private bool ShouldBlockMouse(InterceptionService.InterceptionMouseStroke mouseStroke)
@@ -220,7 +218,7 @@ namespace GamepadEmulator.Services
         {
             if (!_disposed)
             {
-                _ = Task.Run(Stop);
+                Stop().Wait(); // Block and wait for stop to complete
                 _inactivityTimer?.Dispose();
                 _interceptionService?.Dispose();
                 _gamepadService?.Dispose();
