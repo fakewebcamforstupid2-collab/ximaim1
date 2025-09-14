@@ -34,7 +34,15 @@ namespace GamepadEmulator.Services
 
         private readonly HashSet<int> _activeKeys = new HashSet<int>();
 
-        public double Sensitivity { get; set; } = 1.05;
+        private double _previousX = 0;
+        private double _previousY = 0;
+
+        public double DeadZone { get; set; } = 5.0;
+        public double HorizontalSensitivity { get; set; } = 1.0;
+        public double VerticalSensitivity { get; set; } = 1.0;
+        public bool IsExponentialCurve { get; set; } = true;
+        public double NoiseFilter { get; set; } = 15.0;
+        public bool IsReverseModeOn { get; set; }
 
         public event Action<Xbox360Button, bool>? ButtonStateChanged;
         public event Action<short, short>? LeftStickChanged;
@@ -61,14 +69,46 @@ namespace GamepadEmulator.Services
 
         public void HandleMouseStroke(InterceptionService.InterceptionMouseStroke mouseStroke)
         {
-            double rjoystick_x = (mouseStroke.x / 32767.0) * Sensitivity;
-            double rjoystick_y = (mouseStroke.y / 32767.0) * Sensitivity;
+            // Normalize mouse input
+            double mouse_x = mouseStroke.x / 32767.0;
+            double mouse_y = mouseStroke.y / 32767.0;
 
+            // Apply Dead Zone
+            double deadZoneAmount = DeadZone / 100.0;
+            if (Math.Abs(mouse_x) < deadZoneAmount) mouse_x = 0;
+            if (Math.Abs(mouse_y) < deadZoneAmount) mouse_y = 0;
+
+            // Apply Sensitivity
+            double rjoystick_x = mouse_x * HorizontalSensitivity;
+            double rjoystick_y = mouse_y * VerticalSensitivity;
+
+            // Apply Exponential Curve
+            if (IsExponentialCurve)
+            {
+                rjoystick_x = Math.Sign(rjoystick_x) * Math.Pow(Math.Abs(rjoystick_x), 2);
+                rjoystick_y = Math.Sign(rjoystick_y) * Math.Pow(Math.Abs(rjoystick_y), 2);
+            }
+
+            // Clamp values to [-1.0, 1.0]
             rjoystick_x = Math.Max(Math.Min(rjoystick_x, 1.0), -1.0);
             rjoystick_y = Math.Max(Math.Min(rjoystick_y, 1.0), -1.0);
 
+            // Apply Noise Filter
+            double filterWeight = NoiseFilter / 100.0;
+            rjoystick_x = (rjoystick_x * (1 - filterWeight)) + (_previousX * filterWeight);
+            rjoystick_y = (rjoystick_y * (1 - filterWeight)) + (_previousY * filterWeight);
+            _previousX = rjoystick_x;
+            _previousY = rjoystick_y;
+
+            // Convert to short for the gamepad driver
             short joystick_x = (short)(rjoystick_x * short.MaxValue);
-            short joystick_y = (short)(-rjoystick_y * short.MaxValue);
+            short joystick_y = (short)(-rjoystick_y * short.MaxValue); // Y-axis is inverted by default
+
+            // Apply Reverse Mode
+            if (IsReverseModeOn)
+            {
+                joystick_y = (short)-joystick_y;
+            }
 
             RightStickChanged?.Invoke(joystick_x, joystick_y);
         }

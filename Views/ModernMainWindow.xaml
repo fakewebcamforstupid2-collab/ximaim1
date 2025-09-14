@@ -121,13 +121,6 @@
     </Window.Resources>
 
     <Grid>
-        <!-- Background with Xbox controller image -->
-        <Grid.Background>
-            <ImageBrush ImageSource="/Assets/Images/xboxbackground.png" 
-                       Stretch="UniformToFill" 
-                       Opacity="0.3"/>
-        </Grid.Background>
-        
         <Grid.RowDefinitions>
             <RowDefinition Height="60"/>
             <RowDefinition Height="*"/>
@@ -135,12 +128,12 @@
         </Grid.RowDefinitions>
 
         <!-- Top Navigation Bar -->
-        <Grid Grid.Row="0" Background="#33000000" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+        <Grid Grid.Row="0" Background="#1A000000" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
             <!-- Left side - App icon and tabs -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="20,0">
                 <!-- App Icon -->
                 <Border Width="40" Height="40" Background="#FF444444" CornerRadius="4" Margin="0,0,20,0">
-                    <TextBlock Text="🎮" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Text="Q" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="Bold"/>
                 </Border>
                 
                 <!-- Navigation Tabs -->
@@ -149,15 +142,16 @@
                 <Button Content="CONFIG" Style="{StaticResource TabButtonStyle}" Click="ConfigTab_Click"/>
                 <Button Content="CROSSHAIR" Style="{StaticResource TabButtonStyle}" Click="CrosshairTab_Click"/>
                 <Button Content="SCRIPTS" Style="{StaticResource TabButtonStyle}" Click="ScriptsTab_Click"/>
+                <Button Content="E" Style="{StaticResource TabButtonStyle}" />
             </StackPanel>
 
             <!-- Right side - Linear/Exponential toggles and window controls -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0">
                 <!-- Linear/Exponential Toggle -->
                 <ToggleButton Content="Linear" Style="{StaticResource ModeToggleStyle}" 
-                             IsChecked="True" Margin="0,0,10,0" x:Name="LinearToggle"/>
+                             Margin="0,0,10,0" x:Name="LinearToggle" IsChecked="{Binding IsExponentialCurve, Converter={x:Static local:InverseBoolConverter.Instance}}"/>
                 <ToggleButton Content="Exponential" Style="{StaticResource ModeToggleStyle}" 
-                             Margin="0,0,20,0" x:Name="ExponentialToggle"/>
+                             IsChecked="{Binding IsExponentialCurve}" Margin="0,0,20,0" x:Name="ExponentialToggle"/>
                 
                 <!-- Window Controls -->
                 <Button Content="−" Width="30" Height="30" Background="Transparent" 
@@ -176,6 +170,9 @@
 
             <!-- Central Controller Area -->
             <Grid Grid.Column="0">
+                <Grid.Background>
+                    <ImageBrush ImageSource="/Assets/Images/xboxbackground.png" Stretch="Uniform" />
+                </Grid.Background>
                 <!-- Controller with button mappings -->
                 <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="600" Height="400">
                     <!-- Central Xbox Controller -->
@@ -300,31 +297,31 @@
                     <TextBlock Text="Dead Zone" Foreground="#FFCCCCCC" FontWeight="Bold" 
                               FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                     <Slider x:Name="DeadZoneSlider" Style="{StaticResource ControlKnobStyle}" 
-                            Minimum="0" Maximum="100" Value="5" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+                            Minimum="0" Maximum="100" Value="{Binding DeadZone}" HorizontalAlignment="Center" Margin="0,0,0,30"/>
                     
                     <!-- Horizontal -->
                     <TextBlock Text="Horizontal" Foreground="#FFCCCCCC" FontWeight="Bold" 
                               FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                     <Slider x:Name="HorizontalSlider" Style="{StaticResource ControlKnobStyle}" 
-                            Minimum="0.1" Maximum="3.0" Value="{Binding Sensitivity}" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+                            Minimum="0.1" Maximum="3.0" Value="{Binding HorizontalSensitivity}" HorizontalAlignment="Center" Margin="0,0,0,30"/>
                     
                     <!-- Vertical -->
                     <TextBlock Text="Vertical" Foreground="#FFCCCCCC" FontWeight="Bold" 
                               FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                     <Slider x:Name="VerticalSlider" Style="{StaticResource ControlKnobStyle}" 
-                            Minimum="0.1" Maximum="3.0" Value="{Binding Sensitivity}" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+                            Minimum="0.1" Maximum="3.0" Value="{Binding VerticalSensitivity}" HorizontalAlignment="Center" Margin="0,0,0,30"/>
                     
                     <!-- DoubleMVM -->
                     <TextBlock Text="DoubleMVM" Foreground="#FFCCCCCC" FontWeight="Bold" 
                               FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                     <Slider x:Name="DoubleMVMSlider" Style="{StaticResource ControlKnobStyle}" 
-                            Minimum="0" Maximum="100" Value="0" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+                            Minimum="0" Maximum="100" Value="{Binding DoubleMvm}" HorizontalAlignment="Center" Margin="0,0,0,30"/>
                     
                     <!-- Noise Filter -->
                     <TextBlock Text="Noise Filter" Foreground="#FFCCCCCC" FontWeight="Bold" 
                               FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,10"/>
                     <Slider x:Name="NoiseFilterSlider" Style="{StaticResource ControlKnobStyle}" 
-                            Minimum="0" Maximum="100" Value="15" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+                            Minimum="0" Maximum="100" Value="{Binding NoiseFilter}" HorizontalAlignment="Center" Margin="0,0,0,20"/>
                 </StackPanel>
             </Grid>
         </Grid>
@@ -338,15 +335,15 @@
                     <TextBlock Text="F11" Foreground="#FFCCCCCC" FontSize="9" FontWeight="Bold"/>
                 </Border>
                 <TextBlock Text="Reverse Mode : " Foreground="#FFAAAAAA" FontSize="10"/>
-                <ToggleButton Content="OFF" Style="{StaticResource StatusToggleStyle}" 
-                             x:Name="ReverseModeToggle" Margin="0,0,20,0"/>
+                <ToggleButton Content="{Binding IsReverseModeOn, StringFormat='{}{0:ON;OFF}'}" Style="{StaticResource StatusToggleStyle}"
+                             IsChecked="{Binding IsReverseModeOn}" Margin="0,0,20,0"/>
                 
                 <!-- F10 - Engine -->
                 <Border Background="#FF333333" CornerRadius="3" Padding="5,2" Margin="0,0,10,0">
                     <TextBlock Text="F10" Foreground="#FFCCCCCC" FontSize="9" FontWeight="Bold"/>
                 </Border>
                 <TextBlock Text="Engine : " Foreground="#FFAAAAAA" FontSize="10"/>
-                <ToggleButton Content="{Binding IsRunning, StringFormat='{}{0:ON:OFF}'}" 
+                <ToggleButton Content="{Binding IsRunning, StringFormat='{}{0:ON;OFF}'}"
                              Style="{StaticResource StatusToggleStyle}"
                              IsChecked="{Binding IsRunning}" Margin="0,0,20,0"/>
                 
@@ -355,8 +352,16 @@
                     <TextBlock Text="F9" Foreground="#FFCCCCCC" FontSize="9" FontWeight="Bold"/>
                 </Border>
                 <TextBlock Text="Block Keys : " Foreground="#FFAAAAAA" FontSize="10"/>
-                <ToggleButton Content="OFF" Style="{StaticResource StatusToggleStyle}" 
-                             x:Name="BlockKeysToggle" Margin="0,0,20,0"/>
+                <ToggleButton Content="{Binding AreKeysBlocked, StringFormat='{}{0:ON;OFF}'}" Style="{StaticResource StatusToggleStyle}"
+                             IsChecked="{Binding AreKeysBlocked}" Margin="0,0,20,0"/>
+
+                <!-- INSERT - Pause/Resume -->
+                <Border Background="#FF333333" CornerRadius="3" Padding="5,2" Margin="0,0,10,0">
+                    <TextBlock Text="INSERT" Foreground="#FFCCCCCC" FontSize="9" FontWeight="Bold"/>
+                </Border>
+                <TextBlock Text="Pause/Resume : " Foreground="#FFAAAAAA" FontSize="10"/>
+                <ToggleButton Content="{Binding IsPaused, Converter={x:Static local:InverseBoolConverter.Instance}, StringFormat='{}{0:ON;OFF}'}" Style="{StaticResource StatusToggleStyle}"
+                             IsChecked="{Binding IsPaused, Converter={x:Static local:InverseBoolConverter.Instance}}"/>
             </StackPanel>
             
             <!-- Right side controls -->

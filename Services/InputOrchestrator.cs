@@ -26,6 +26,8 @@ namespace GamepadEmulator.Services
         public event Action<string>? LogMessage;
         public event Action<bool>? PausedStateChanged;
         public event Action<bool>? RunningStateChanged;
+        public event Action? ReverseModeToggled;
+        public event Action? BlockKeysToggled;
 
         public InputOrchestrator()
         {
@@ -37,7 +39,8 @@ namespace GamepadEmulator.Services
             {
                 17, 30, 31, 32, // WASD
                 57, 29, 19, 2,   // Space, LCtrl, R, 1
-                82, 25           // INSERT, P
+                82, 25,          // INSERT, P
+                87, 67           // F11, F9
             };
 
             _inactivityTimer = new Timer(CheckMouseInactivity, null, Timeout.Infinite, Timeout.Infinite);
@@ -160,14 +163,23 @@ namespace GamepadEmulator.Services
             LogMessage?.Invoke(paused ? "Input processing paused." : "Input processing resumed.");
         }
 
-        public void SetSensitivity(double sensitivity)
-        {
-            _mappingService.Sensitivity = sensitivity;
-            LogMessage?.Invoke($"Sensitivity set to {sensitivity:F2}");
-        }
+        public void SetDeadZone(double value) => _mappingService.DeadZone = value;
+        public void SetHorizontalSensitivity(double value) => _mappingService.HorizontalSensitivity = value;
+        public void SetVerticalSensitivity(double value) => _mappingService.VerticalSensitivity = value;
+        public void SetIsExponentialCurve(bool value) => _mappingService.IsExponentialCurve = value;
+        public void SetNoiseFilter(double value) => _mappingService.NoiseFilter = value;
+        public void SetAreKeysBlocked(bool value) => AreKeysBlocked = value;
+        public void SetIsReverseModeOn(bool value) => _mappingService.IsReverseModeOn = value;
+
+        public bool AreKeysBlocked { get; private set; } = true;
 
         private bool ShouldBlockKey(InterceptionService.InterceptionStroke stroke)
         {
+            if (!AreKeysBlocked)
+            {
+                return false; // Pass all keys through if blocking is disabled
+            }
+
             // Only block keys that are mapped to gamepad functions
             // Block means "consume for gamepad use", unblock means "pass through to Windows"
             return _blockedKeyCodes.Contains(stroke.code);
@@ -186,6 +198,20 @@ namespace GamepadEmulator.Services
             if (stroke.code == 82 && stroke.state == 0)
             {
                 SetPaused(!IsPaused);
+                return;
+            }
+
+            // Handle Reverse Mode key (F11 key = 87)
+            if (stroke.code == 87 && stroke.state == 0)
+            {
+                ReverseModeToggled?.Invoke();
+                return;
+            }
+
+            // Handle Block Keys key (F9 key = 67)
+            if (stroke.code == 67 && stroke.state == 0)
+            {
+                BlockKeysToggled?.Invoke();
                 return;
             }
 

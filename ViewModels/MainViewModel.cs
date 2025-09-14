@@ -16,7 +16,17 @@ namespace GamepadEmulator.ViewModels
         private bool _isControllerConnected;
         private bool _isRunning;
         private bool _isPaused = true;
-        private double _sensitivity = 1.05;
+
+        // New properties for Modern UI
+        private double _deadZone = 5.0;
+        private double _horizontalSensitivity = 1.0;
+        private double _verticalSensitivity = 1.0;
+        private double _doubleMvm = 0.0;
+        private double _noiseFilter = 15.0;
+        private bool _isExponentialCurve = true;
+        private bool _isReverseModeOn;
+        private bool _areKeysBlocked;
+
         private short _leftStickX;
         private short _leftStickY;
         private short _rightStickX;
@@ -48,15 +58,79 @@ namespace GamepadEmulator.ViewModels
             set => SetProperty(ref _isPaused, value);
         }
 
-        public double Sensitivity
+        public double DeadZone
         {
-            get => _sensitivity;
+            get => _deadZone;
             set
             {
-                if (SetProperty(ref _sensitivity, value))
-                {
-                    _inputOrchestrator.SetSensitivity(value);
-                }
+                if (SetProperty(ref _deadZone, value))
+                    _inputOrchestrator.SetDeadZone(value);
+            }
+        }
+
+        public double HorizontalSensitivity
+        {
+            get => _horizontalSensitivity;
+            set
+            {
+                if (SetProperty(ref _horizontalSensitivity, value))
+                    _inputOrchestrator.SetHorizontalSensitivity(value);
+            }
+        }
+
+        public double VerticalSensitivity
+        {
+            get => _verticalSensitivity;
+            set
+            {
+                if (SetProperty(ref _verticalSensitivity, value))
+                    _inputOrchestrator.SetVerticalSensitivity(value);
+            }
+        }
+
+        public double DoubleMvm
+        {
+            get => _doubleMvm;
+            set => SetProperty(ref _doubleMvm, value); // No backend logic for this yet
+        }
+
+        public double NoiseFilter
+        {
+            get => _noiseFilter;
+            set
+            {
+                if (SetProperty(ref _noiseFilter, value))
+                    _inputOrchestrator.SetNoiseFilter(value);
+            }
+        }
+
+        public bool IsExponentialCurve
+        {
+            get => _isExponentialCurve;
+            set
+            {
+                if (SetProperty(ref _isExponentialCurve, value))
+                    _inputOrchestrator.SetIsExponentialCurve(value);
+            }
+        }
+
+        public bool IsReverseModeOn
+        {
+            get => _isReverseModeOn;
+            set
+            {
+                if (SetProperty(ref _isReverseModeOn, value))
+                    _inputOrchestrator.SetIsReverseModeOn(value);
+            }
+        }
+
+        public bool AreKeysBlocked
+        {
+            get => _areKeysBlocked;
+            set
+            {
+                if (SetProperty(ref _areKeysBlocked, value))
+                    _inputOrchestrator.SetAreKeysBlocked(value);
             }
         }
 
@@ -107,6 +181,8 @@ namespace GamepadEmulator.ViewModels
             _inputOrchestrator.LogMessage += OnLogMessage;
             _inputOrchestrator.RunningStateChanged += state => Application.Current.Dispatcher.InvokeAsync(() => IsRunning = state);
             _inputOrchestrator.PausedStateChanged += state => Application.Current.Dispatcher.InvokeAsync(() => IsPaused = state);
+            _inputOrchestrator.ReverseModeToggled += () => Application.Current.Dispatcher.InvokeAsync(() => IsReverseModeOn = !IsReverseModeOn);
+            _inputOrchestrator.BlockKeysToggled += () => Application.Current.Dispatcher.InvokeAsync(() => AreKeysBlocked = !AreKeysBlocked);
 
             // Initialize
             InitializeAsync();

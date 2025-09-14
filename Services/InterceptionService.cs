@@ -162,6 +162,7 @@ namespace GamepadEmulator.Services
                             }
                         }
 
+                        await Task.Delay(1, cancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
