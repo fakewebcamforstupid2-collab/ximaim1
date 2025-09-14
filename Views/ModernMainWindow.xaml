@@ -54,7 +54,7 @@
                                       RenderTransformOrigin="0.5,1"
                                       VerticalAlignment="Center">
                                 <Rectangle.RenderTransform>
-                                    <RotateTransform Angle="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Value, Converter={x:Static local:ValueToAngleConverter.Instance}}"/>
+                                    <RotateTransform Angle="0"/>
                                 </Rectangle.RenderTransform>
                             </Rectangle>
                             <!-- Center dot -->
